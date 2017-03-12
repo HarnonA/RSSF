@@ -1,3 +1,4 @@
+package RSSF;
 import java.util.ArrayList;
 import java.awt.Point;
 
@@ -6,6 +7,7 @@ public class Simulador {
 	ArrayList<Node> nodelist;
 	
 	public Simulador(){
+		//Creating Nodes.
 		nodelist = new ArrayList<Node>();
 		
 		nodelist.add( new Node( 0, new Point(8, 4),  "Sem Conteudo", 1, 40) );
@@ -111,11 +113,43 @@ public class Simulador {
 
 	}
 	
+	public void prepararSimulador(){
+		for (int i = 0; i < this.nodelist.size(); ++i){
+			ArrayList<Node> vizinhos = this.pegarVizinhos(this.nodelist.get(i));
+			for(int j = 0; j < vizinhos.size(); ++j){
+				this.nodelist.get(i).setVizinho( vizinhos.get(j) );
+			}
+		}
+	}
 	
+	public ArrayList<Node> pegarVizinhos(Node sensor){
+		ArrayList<Node> vizinhos = new ArrayList<Node>();
+		
+		for(int i = 0; i < this.nodelist.size(); i++){
+			if( eVizinho(sensor, this.nodelist.get(i)) && sensor.id != this.nodelist.get(i).getid()){
+				vizinhos.add(this.nodelist.get(i)); 
+			}
+		}
+		return vizinhos;
+	}
+	
+	private boolean eVizinho(Node sensor1, Node sensor2){
+		if(sensor1.getPosicao().distance( sensor2.getPosicao() ) < sensor1.getAlcance()){
+			return true;
+		}
+		return false;
+	}
 	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
-
+		Simulador simulador = new Simulador();
+		simulador.prepararSimulador();
+		
+		Node s = simulador.nodelist.get(0);
+		ArrayList<Node> v = s.getVizinhos();
+		for( int i = 0; i < v.size(); ++i){
+			System.out.println(v.get(i).getid() + " é vizinho do primeiro.");
+		}
 	}
 
 }
