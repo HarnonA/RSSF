@@ -1,46 +1,37 @@
+package RSSF;
 import java.awt.Point;
 import java.util.ArrayList;
 
 
 public class Node extends Thread{
 	int id;
-	Point posicao;
 	int bateria;
-	String conteudo;
-	int regiao;
-	ArrayList<Integer> msgLidas;
 	int alcance;
-
+	int regiao;
+	Point posicao;
+	String conteudo;
+	ArrayList<Integer> msgLidas;
+	ArrayList<Node> vizinhos;
 
 	public Node(int id, Point point, String conteudo,
 			int regiao, int alcance){
 		this.id = id;
-		this.posicao = point;
 		this.bateria = 100;
+		this.alcance = alcance;
 		this.conteudo= conteudo;
 		this.regiao = regiao;
+		this.posicao = point;
 		this.msgLidas = new ArrayList<Integer>();
-		this.alcance = alcance;
-		
-		
+		this.vizinhos = new ArrayList<Node>();
 		
 	}
-	
 	
 	public int getid(){
 		return id;
 	}
 
-	public void setId(int id) {
-		this.id = id;
-	}
-
 	public Point getPosicao() {
 		return posicao;
-	}
-
-	public void setPosicao(Point posicao) {
-		this.posicao = posicao;
 	}
 
 	public int getBateria() {
@@ -63,26 +54,21 @@ public class Node extends Thread{
 		return regiao;
 	}
 
-	public void setRegiao(int regiao) {
-		this.regiao = regiao;
-	}
-
 	public ArrayList<Integer> getMsgLidas() {
 		return msgLidas;
-	}
-
-	public void setMsgLidas(ArrayList<Integer> msgLidas) {
-		this.msgLidas = msgLidas;
 	}
 
 	public int getAlcance() {
 		return alcance;
 	}
-
-	public void setAlcance(int alcance) {
-		this.alcance = alcance;
+	
+	public ArrayList<Node> getVizinhos(){
+		return vizinhos;
 	}
 	
+	public void setVizinho(Node s){
+		this.vizinhos.add(s);
+	}
 	
 	// recursive geographic forward
 	public void rgf(Msg msg){
@@ -129,9 +115,4 @@ public class Node extends Thread{
 	public void atualizar(){
 		
 	}
-	
-	
-
-	
-	
 }
