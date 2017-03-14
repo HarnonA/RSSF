@@ -84,52 +84,48 @@ public class Node extends Thread{
 	
 	
 	
-		public void gear(Node dest, Node orig, String msg, Regiao reg) {
+	public void gear(Node dest, Node orig, String msg, Regiao reg) {
 
-		// no dest esta dentro da area
-		if (reg.estaDentro(dest.getPosicao())) {
+	// no dest esta dentro da area
+	if (reg.estaDentro(dest.getPosicao())) {
+		// numero de vizinhos na subregiao
+		if (reg.nNosDentro(dest) == 0) {
+			// entregaMsg();
+		} else { // mais de um no na subregiao
 
-			// TODO
-			// eh unico no?
-			if (reg.nNosDentro() == 1) {
-				// esse eh seu no
-			} else { // mais de um no na subregiao
+			double x1 = reg.sup.getX(), x2 = reg.inf.getX();
+			double y1 = reg.inf.getY(), y2 = reg.sup.getY();
 
-				double x1 = reg.sup.getX(), x2 = reg.inf.getX();
-				double y1 = reg.inf.getY(), y2 = reg.sup.getY();
+			// altura e largura das subregioes dividindoo regiao em 4
+			double lSubReg = (x2 - x1) / 2;
+			double aSubReg = (y2 - y1) / 2;
 
-				// altura e largura das subregioes dividindoo regiao em 4
-				double lSubReg = (x2 - x1) / 2;
-				double aSubReg = (y2 - y1) / 2;
+			Regiao subReg1, subReg2, subReg3, subReg4;
+			Point a = new Point();
+			Point b = new Point();
 
-				Regiao subReg1, subReg2, subReg3, subReg4;
-				Point a = new Point();
-				Point b = new Point();
+			// ========
+			// inferior esquerdo
+			a.setLocation(x1, y1);
+			b.setLocation(x1 + lSubReg, y1 + aSubReg);
+			subReg1 = new Regiao(a, b);
 
-				// ========
-				// inferior esquerdo
-				a.setLocation(x1, y1);
-				b.setLocation(x1 + lSubReg, y1 + aSubReg);
-				subReg1 = new Regiao(a, b);
+			// inferior direito
+			a.setLocation(x1 + lSubReg, y1);
+			b.setLocation(x2, y1 + aSubReg);
+			subReg2 = new Regiao(a, b);
 
-				// inferior direito
-				a.setLocation(x1 + lSubReg, y1);
-				b.setLocation(x2, y1 + aSubReg);
-				subReg2 = new Regiao(a, b);
+			// superior esquerdo
+			a.setLocation(x1, y1 + aSubReg);
+			b.setLocation(x1 + lSubReg, y2);
+			subReg3 = new Regiao(a, b);
 
-				// superior esquerdo
-				a.setLocation(x1, y1 + aSubReg);
-				b.setLocation(x1 + lSubReg, y2);
-				subReg3 = new Regiao(a, b);
-
-				// superior direito
-				a.setLocation(x1 + lSubReg, y1 + aSubReg);
-				b.setLocation(x2, y1 + y2);
-				subReg4 = new Regiao(a, b);
-				// ========
-
+			// superior direito
+			a.setLocation(x1 + lSubReg, y1 + aSubReg);
+			b.setLocation(x2, y1 + y2);
+			subReg4 = new Regiao(a, b);
+			// ========
 			}
-
 		}
 	}
 
