@@ -4,6 +4,11 @@ import java.util.ArrayList;
 
 
 public class Node extends Thread{
+	
+	static int n_enviados = 0;
+	static int n_recebidos = 0;
+	static int energia_gasta = 0;
+	
 	int id;
 	int bateria;
 	int alcance;
@@ -12,6 +17,7 @@ public class Node extends Thread{
 	String conteudo;
 	ArrayList<String> msgLidas;
 	ArrayList<Node> vizinhos;
+	boolean dead;
 
 	public Node(int id, Point point, String conteudo,
 			int regiao, int alcance){
@@ -23,6 +29,7 @@ public class Node extends Thread{
 		this.posicao = point;
 		this.msgLidas = new ArrayList<String>();
 		this.vizinhos = new ArrayList<Node>();
+		this.dead = false;
 		
 	}
 	
@@ -97,11 +104,14 @@ public class Node extends Thread{
 		
 		// Pega o endereço do nó mais próximo do centro da região destino.
 		int melhorNo = -1;
-		double dist, menorDist = 1000000;
+		double custo, menorCusto = 1000000;
 		for(int i = 0; i < this.vizinhos.size(); ++i ){
-			dist = this.vizinhos.get(i).getPosicao().distance( centro );
-			if( menorDist > dist ){
-				menorDist = dist;
+			if(this.vizinhos.get(i).getBateria() <= 0)
+				continue;
+			
+			custo = this.vizinhos.get(i).getPosicao().distance( centro );
+			if( menorCusto > custo ){
+				menorCusto = custo;
 				melhorNo = i;
 			}
 		}
@@ -109,6 +119,10 @@ public class Node extends Thread{
 		if(melhorNo < 0){
 			System.out.println("Erro na escolha do próximo hop");
 		}
+		
+		this.n_enviados += 1;
+		this.energia_gasta += 4;
+		this.bateria -= 4;
 		// Envia a mensagem para o no mais proximo do destino.
 		this.vizinhos.get( melhorNo ).receber( msg );	
 	}
@@ -177,6 +191,10 @@ public class Node extends Thread{
 	public void receber(Msg msg){
 		msg.envelhecer();
 		
+		this.energia_gasta += 1;
+		this.n_recebidos += 1;
+		this.bateria -= 1;
+		
 		// Se a msg nao tiver sido recebida pela primeira vez.
 		if( !this.msgLidas.contains( msg.getDados() ) ){
 			this.msgLidas.add( msg.getDados() );
@@ -197,6 +215,18 @@ public class Node extends Thread{
 				this.enviar( msg );		
 			}			
 		}
+	}
+	
+	@Override
+	public void run() {
+		try{
+			Thread.sleep(1000);
+			this.bateria -= 1;
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
 	}
 
 }
