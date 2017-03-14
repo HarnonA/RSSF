@@ -1,43 +1,34 @@
+package RSSF;
 
 public class Msg {
 	String dados;
-	int regiaoDestino;
-	int noDestino;
+	Regiao regiaoDestino;
 	int vida;
-	int idMsg;
 	
-	public Msg(String dados,int noDestino,int vida, int idMsg, int no){
+	public Msg(String dados, Regiao regDestino,int vida){
 		this.dados = dados;
-		this.regiaoDestino = noDestino;
+		this.regiaoDestino = regDestino;
 		this.vida = vida;
-		this.idMsg = idMsg;
-		this.noDestino = no;
 	}
 
 	public String getDados() {
 		return dados;
 	}
 
-	public int getRegiaoDestino() {
+	public Regiao getRegiaoDestino() {
 		return regiaoDestino;
+	}
+	
+	public void setRegiao( Regiao reg ) {
+		this.regiaoDestino = reg;
 	}
 
 	public int getVida() {
 		return vida;
 	}
-	public int getIdmsg() {
-		return idMsg;
-	}
-	
-	public int getNoDestino(){
-		return noDestino;
-	}
 	
 	public void envelhecer(){
 		--vida;
 	}
-	
-	
-	
 
 }
