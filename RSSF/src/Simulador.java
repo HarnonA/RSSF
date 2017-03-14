@@ -113,6 +113,9 @@ public class Simulador {
 
 	}
 	
+	/*
+	 * Pré-processamento dos nós.
+	 */
 	public void prepararSimulador(){
 		for (int i = 0; i < this.nodelist.size(); ++i){
 			ArrayList<Node> vizinhos = this.pegarVizinhos(this.nodelist.get(i));
@@ -122,6 +125,9 @@ public class Simulador {
 		}
 	}
 	
+	/*
+	 * Pega os vizinhos de um nó.
+	 */
 	public ArrayList<Node> pegarVizinhos(Node sensor){
 		ArrayList<Node> vizinhos = new ArrayList<Node>();
 		
@@ -133,6 +139,9 @@ public class Simulador {
 		return vizinhos;
 	}
 	
+	/*
+	 * Retorna verdadeiro se o sensor2 é vizinho do sensor 1.
+	 */
 	private boolean eVizinho(Node sensor1, Node sensor2){
 		if(sensor1.getPosicao().distance( sensor2.getPosicao() ) < sensor1.getAlcance()){
 			return true;
@@ -140,16 +149,32 @@ public class Simulador {
 		return false;
 	}
 	
+	/*
+	 * Printa.
+	 */
+	public void printNodeListContent(){
+		for(int i = 0; i < this.nodelist.size(); ++i){
+			Node n = this.nodelist.get(i);
+			System.out.println("Sensor " + i + ":\n     " + n.getConteudo());
+		}
+	}
+	
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+		
 		Simulador simulador = new Simulador();
 		simulador.prepararSimulador();
-		
 		Node s = simulador.nodelist.get(0);
-		ArrayList<Node> v = s.getVizinhos();
-		for( int i = 0; i < v.size(); ++i){
-			System.out.println(v.get(i).getid() + " é vizinho do primeiro.");
-		}
+		
+		/*MUDE O DESTINO AQUI*/
+		Regiao regiaoDestino = new Regiao(new Point(120, 150), new Point(150, 120));
+		/********************/
+		
+		Msg msg = new Msg("TO NO DESTINOOOO!!", regiaoDestino, 100);
+		
+		s.receber(msg);
+		
+		simulador.printNodeListContent();
+		
 	}
 
 }
