@@ -21,11 +21,14 @@ public class Regiao {
 		return false;		
 	}
 	
-	public int nNosDentro(){
-		//for lista de nos
-		//if no dentro de x e y
-		//cont++
-		return 0;
+	public int nNosDentro(Node no){
+		int cont = 0;
+		for (int i = 0; i < no.vizinhos.size(); i++) {
+			//if no dentro da regiao
+			if(estaDentro(no.vizinhos.get(i).posicao))
+				cont++;	
+		}
+		return cont;
 	}
 	
 	public int getRegiao(){
