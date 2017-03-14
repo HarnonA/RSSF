@@ -10,7 +10,7 @@ public class Node extends Thread{
 	int regiao;
 	Point posicao;
 	String conteudo;
-	ArrayList<Integer> msgLidas;
+	ArrayList<String> msgLidas;
 	ArrayList<Node> vizinhos;
 
 	public Node(int id, Point point, String conteudo,
@@ -21,7 +21,7 @@ public class Node extends Thread{
 		this.conteudo= conteudo;
 		this.regiao = regiao;
 		this.posicao = point;
-		this.msgLidas = new ArrayList<Integer>();
+		this.msgLidas = new ArrayList<String>();
 		this.vizinhos = new ArrayList<Node>();
 		
 	}
@@ -54,7 +54,7 @@ public class Node extends Thread{
 		return regiao;
 	}
 
-	public ArrayList<Integer> getMsgLidas() {
+	public ArrayList<String> getMsgLidas() {
 		return msgLidas;
 	}
 
@@ -70,96 +70,133 @@ public class Node extends Thread{
 		this.vizinhos.add(s);
 	}
 	
-	// recursive geographic forward
-	public void rgf(Msg msg){
-		
-		
-	}
-	
+	/*
 	public double calcCusto(Point pDistino){
 		double peso = 0.8;
 		return peso * this.posicao.distance(pDistino) + (1-peso)*(100-bateria);
 		
 	}
+	*/
 	
-	
-	
-	public void gear(Node dest, Node orig, String msg, Regiao reg) {
-
-	// no dest esta dentro da area
-	if (reg.estaDentro(dest.getPosicao())) {
-		// numero de vizinhos na subregiao
-		if (reg.nNosDentro(dest) == 0) {
-			// entregaMsg();
-		} else { // mais de um no na subregiao
-
-			double x1 = reg.sup.getX(), x2 = reg.inf.getX();
-			double y1 = reg.inf.getY(), y2 = reg.sup.getY();
-
-			// altura e largura das subregioes dividindoo regiao em 4
-			double lSubReg = (x2 - x1) / 2;
-			double aSubReg = (y2 - y1) / 2;
-
-			Regiao subReg1, subReg2, subReg3, subReg4;
-			Point a = new Point();
-			Point b = new Point();
-
-			// ========
-			// inferior esquerdo
-			a.setLocation(x1, y1);
-			b.setLocation(x1 + lSubReg, y1 + aSubReg);
-			subReg1 = new Regiao(a, b);
-
-			// inferior direito
-			a.setLocation(x1 + lSubReg, y1);
-			b.setLocation(x2, y1 + aSubReg);
-			subReg2 = new Regiao(a, b);
-
-			// superior esquerdo
-			a.setLocation(x1, y1 + aSubReg);
-			b.setLocation(x1 + lSubReg, y2);
-			subReg3 = new Regiao(a, b);
-
-			// superior direito
-			a.setLocation(x1 + lSubReg, y1 + aSubReg);
-			b.setLocation(x2, y1 + y2);
-			subReg4 = new Regiao(a, b);
-			// ========
-			}
+	/*
+	 * Retorna se é possivel implicar q esta dentro da regiao
+	 */
+	public boolean estaDentro(Regiao reg){
+		if( reg.getSup().x <= this.posicao.x && reg.getSup().y > this.posicao.y &&
+				reg.getInf().x > this.posicao.x && reg.getInf().y <= this.posicao.y ) {
+			return true;
 		}
+		return false;
 	}
 
-	public void enviar(){
+	public void enviar(Msg msg){
+		// Pega o ponto central da região.
+		Point centro = new Point();
+		centro.x = (msg.getRegiaoDestino().getInf().x + msg.getRegiaoDestino().getSup().x) / 2;
+		centro.y = (msg.getRegiaoDestino().getInf().y + msg.getRegiaoDestino().getSup().y) / 2;
 		
+		// Pega o endereço do nó mais próximo do centro da região destino.
+		int melhorNo = -1;
+		double dist, menorDist = 1000000;
+		for(int i = 0; i < this.vizinhos.size(); ++i ){
+			dist = this.vizinhos.get(i).getPosicao().distance( centro );
+			if( menorDist > dist ){
+				menorDist = dist;
+				melhorNo = i;
+			}
+		}
 		
+		if(melhorNo < 0){
+			System.out.println("Erro na escolha do próximo hop");
+		}
+		// Envia a mensagem para o no mais proximo do destino.
+		this.vizinhos.get( melhorNo ).receber( msg );	
+	}
+	
+	public void Subdivide_Envia(Msg msg){
 		
+		// Pega o ponto central da região.
+		Point centro = new Point();
+		centro.x = (msg.getRegiaoDestino().getInf().x + msg.getRegiaoDestino().getSup().x) / 2;
+		centro.y = (msg.getRegiaoDestino().getInf().y + msg.getRegiaoDestino().getSup().y) / 2;
+	
+		// Subdivide e envia em 4 partes
+		Regiao original, reg1, reg2, reg3, reg4;
+		original = msg.getRegiaoDestino();
+		reg1 = new Regiao( original.getSup(), centro );
+		reg2 = new Regiao( new Point(centro.x, original.getSup().y ), new Point(original.getInf().x, centro.y) );
+		reg3 = new Regiao( new Point(original.getSup().x, centro.y), new Point(centro.x, original.getInf().y) );
+		reg4 = new Regiao( centro, original.getInf() );
 		
+		// Envia pra as subdivisoes.
+		if( !this.regiaoEstaVazia(reg1) ){
+			msg.setRegiao(reg1);
+			enviar(msg);
+		}
+		
+		if( !this.regiaoEstaVazia(reg2) ){
+			msg.setRegiao(reg2);
+			enviar(msg);
+		}
+		
+		if( !this.regiaoEstaVazia(reg3) ){
+			msg.setRegiao(reg3);
+			enviar(msg);
+		}
+		
+		if( !this.regiaoEstaVazia(reg4) ){
+			msg.setRegiao(reg4);
+			enviar(msg);
+		}
+	}
+	
+	/*
+	 * Retorna se é possivel afirma que a regiao esta vazia.
+	 */
+	public boolean regiaoEstaVazia( Regiao reg) {
+		Point supDir = new Point(reg.getInf().x, reg.getSup().y);
+		Point infEsq = new Point(reg.getSup().x, reg.getInf().y);
+		
+		// Verifica se os quatros pontos da regiao estão no alcance.
+		if( this.posicao.distance(reg.getSup()) <= this.alcance && 
+				this.posicao.distance(reg.getInf()) <= this.alcance &&
+				this.posicao.distance(supDir) <= this.alcance &&
+				this.posicao.distance(infEsq) <= this.alcance) {
+			
+			for(int i = 0; i < vizinhos.size(); ++i){
+				if(this.vizinhos.get(i).estaDentro(reg)){
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 	
 	
 	public void receber(Msg msg){
-		if(conteudo.equals(msg.getDados())){
-			if (msg.getVida() > 0) {
-				msg.envelhecer();
-				msgLidas.add(msg.getIdmsg());
-
-				// id sink recebendo msg
-				if (msg.getNoDestino() != id) {
-					enviar();
-				}
-
-				// if(msg.getRegiaoDestino() == regiao){
-				// rgf(msg);
-				//
-				// }
-				else
-					conteudo = msg.getDados();
+		msg.envelhecer();
+		
+		// Se a msg nao tiver sido recebida pela primeira vez.
+		if( !this.msgLidas.contains( msg.getDados() ) ){
+			this.msgLidas.add( msg.getDados() );
+			
+			// Verifica se o nó está dentro da regiao destino.
+			Regiao reg = msg.getRegiaoDestino();
+			if( this.estaDentro(reg) ) 
+			{
+				this.setConteudo( msg.getDados() );
+				
+				this.Subdivide_Envia( msg );
 			}
+			else{
+				
+				if(msg.getVida() <= 0)
+					return;
+				
+				this.enviar( msg );		
+			}			
 		}
-		
-		
 	}
-	public void atualizar(){
-		
-	}
+
 }
