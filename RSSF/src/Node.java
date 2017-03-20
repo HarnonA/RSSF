@@ -15,7 +15,8 @@ public class Node extends Thread{
 	int regiao;
 	Point posicao;
 	String conteudo;
-	ArrayList<String> msgLidas;
+	ArrayList<Regiao> msgLidasDest;
+
 	ArrayList<Node> vizinhos;
 	boolean dead;
 
@@ -27,7 +28,7 @@ public class Node extends Thread{
 		this.conteudo= conteudo;
 		this.regiao = regiao;
 		this.posicao = point;
-		this.msgLidas = new ArrayList<String>();
+		this.msgLidasDest = new ArrayList<Regiao>();
 		this.vizinhos = new ArrayList<Node>();
 		this.dead = false;
 		
@@ -61,10 +62,6 @@ public class Node extends Thread{
 		return regiao;
 	}
 
-	public ArrayList<String> getMsgLidas() {
-		return msgLidas;
-	}
-
 	public int getAlcance() {
 		return alcance;
 	}
@@ -95,6 +92,43 @@ public class Node extends Thread{
 		}
 		return false;
 	}
+	
+	/*
+	 * Verifica se o pacote já foi passou por esse sensor.
+	 */
+	public boolean JaRecebi(Regiao regDest){
+		for(int i = 0; i < this.msgLidasDest.size(); ++i ){
+			if(this.msgLidasDest.get(i).getSup() == regDest.getSup() &&
+					this.msgLidasDest.get(i).getInf() == regDest.getInf()){
+
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/*
+	 * Retorna se é possivel afirma que a regiao esta vazia.
+	 */
+	public boolean regiaoEstaVazia( Regiao reg) {
+		Point supDir = new Point(reg.getInf().x, reg.getSup().y);
+		Point infEsq = new Point(reg.getSup().x, reg.getInf().y);
+		
+		// Verifica se os quatros pontos da regiao estão no alcance.
+		if( this.posicao.distance(reg.getSup()) <= this.alcance && 
+				this.posicao.distance(reg.getInf()) <= this.alcance &&
+				this.posicao.distance(supDir) <= this.alcance &&
+				this.posicao.distance(infEsq) <= this.alcance) {
+			
+			for(int i = 0; i < vizinhos.size(); ++i){
+				if(this.vizinhos.get(i).estaDentro(reg)){
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
 
 	public void enviar(Msg msg){
 		// Pega o ponto central da região.
@@ -106,14 +140,20 @@ public class Node extends Thread{
 		int melhorNo = -1;
 		double custo, menorCusto = 1000000;
 		for(int i = 0; i < this.vizinhos.size(); ++i ){
-			if(this.vizinhos.get(i).getBateria() <= 0)
+			if(this.vizinhos.get(i).getBateria() <= 0 || i == this.id)
 				continue;
+			
+			if(this.vizinhos.get(i).estaDentro(msg.regiaoDestino)){
+				melhorNo = i;
+				break;
+			}
 			
 			custo = this.vizinhos.get(i).getPosicao().distance( centro );
 			if( menorCusto > custo ){
 				menorCusto = custo;
 				melhorNo = i;
 			}
+			
 		}
 		
 		if(melhorNo < 0){
@@ -144,66 +184,62 @@ public class Node extends Thread{
 		
 		// Envia pra as subdivisoes.
 		if( !this.regiaoEstaVazia(reg1) ){
+			/*
+			System.out.println("------|| " + this.id + " enviando para ("+ reg1.getSup().x + ", " + reg1.getSup().y +") - (" 
+					+ reg1.getInf().x + ", " + reg1.getInf().y + ") ||-----"); */
 			msg.setRegiao(reg1);
 			enviar(msg);
 		}
 		
 		if( !this.regiaoEstaVazia(reg2) ){
+			/*
+			System.out.println("------ " + this.id + " enviando para ("+ reg2.getSup().x + ", " + reg2.getSup().y +") - (" 
+					+ reg2.getInf().x + ", " + reg2.getInf().y + ") -----"); */
 			msg.setRegiao(reg2);
 			enviar(msg);
 		}
 		
 		if( !this.regiaoEstaVazia(reg3) ){
+			/*
+			System.out.println("------ " + this.id + " enviando para ("+ reg3.getSup().x + ", " + reg3.getSup().y +") - (" 
+					+ reg3.getInf().x + ", " + reg3.getInf().y + ") -----"); */
 			msg.setRegiao(reg3);
 			enviar(msg);
 		}
 		
 		if( !this.regiaoEstaVazia(reg4) ){
+			/*
+			System.out.println("------ " + this.id + " enviando para ("+ reg4.getSup().x + ", " + reg4.getSup().y +") - (" 
+					+ reg4.getInf().x + ", " + reg4.getInf().y + ") -----"); */
 			msg.setRegiao(reg4);
 			enviar(msg);
 		}
-	}
-	
-	/*
-	 * Retorna se é possivel afirma que a regiao esta vazia.
-	 */
-	public boolean regiaoEstaVazia( Regiao reg) {
-		Point supDir = new Point(reg.getInf().x, reg.getSup().y);
-		Point infEsq = new Point(reg.getSup().x, reg.getInf().y);
 		
-		// Verifica se os quatros pontos da regiao estão no alcance.
-		if( this.posicao.distance(reg.getSup()) <= this.alcance && 
-				this.posicao.distance(reg.getInf()) <= this.alcance &&
-				this.posicao.distance(supDir) <= this.alcance &&
-				this.posicao.distance(infEsq) <= this.alcance) {
-			
-			for(int i = 0; i < vizinhos.size(); ++i){
-				if(this.vizinhos.get(i).estaDentro(reg)){
-					return false;
-				}
-			}
-			return true;
-		}
-		return false;
+		System.out.println("");
 	}
-	
+
 	
 	public void receber(Msg msg){
 		msg.envelhecer();
-		
+		/*
+		System.out.println("|| sensor " + this.id + " received message " + msg.getDados() + 
+				" for (" + msg.getRegiaoDestino().getSup().x + ", " + msg.getRegiaoDestino().getSup().y + 
+				") - (" + msg.getRegiaoDestino().getInf().x + ", " + msg.getRegiaoDestino().getInf().y +") ||\n");
+		*/
 		this.energia_gasta += 1;
 		this.n_recebidos += 1;
 		this.bateria -= 1;
 		
 		// Se a msg nao tiver sido recebida pela primeira vez.
-		if( !this.msgLidas.contains( msg.getDados() ) ){
-			this.msgLidas.add( msg.getDados() );
+		if( !this.JaRecebi( msg.getRegiaoDestino() ) ){
+			this.msgLidasDest.add( msg.getRegiaoDestino() );
 			
 			// Verifica se o nó está dentro da regiao destino.
 			Regiao reg = msg.getRegiaoDestino();
 			if( this.estaDentro(reg) ) 
 			{
-				this.setConteudo( msg.getDados() );
+				//System.out.println( "** " + this.id + " pegou msg**");
+				this.conteudo = msg.getDados();
 				
 				this.Subdivide_Envia( msg );
 			}
@@ -217,10 +253,49 @@ public class Node extends Thread{
 		}
 	}
 	
+	
+	
+	public void enviarFlooding( Msg msg ){
+		for(int i = 0; i < this.vizinhos.size(); ++i){
+			if(this.vizinhos.get(i).getBateria() > 0){
+				this.n_enviados += 1;
+				this.energia_gasta += 4;
+				this.bateria -= 4;
+				this.vizinhos.get(i).receberFlooding( msg );
+				
+			}
+			
+		}
+	}
+	
+	public void receberFlooding( Msg msg){
+		
+		this.energia_gasta += 1;
+		this.n_recebidos += 1;
+		this.bateria -= 1;
+		msg.envelhecer();
+		
+		if( JaRecebi( msg.getRegiaoDestino() ) ){
+			return;
+		}
+		
+		this.msgLidasDest.add(msg.getRegiaoDestino());
+		if( this.estaDentro( msg.getRegiaoDestino() )){
+			this.conteudo = msg.getDados();
+		}
+		if(msg.getVida() > 0 ){
+			this.enviarFlooding( msg );
+		}
+		else{
+			System.out.println("descartando msg no " + this.id);
+		}
+	}
+	
+	
 	@Override
 	public void run() {
 		try{
-			Thread.sleep(1000);
+			Thread.sleep(100);
 			this.bateria -= 1;
 		}
 		catch (Exception e){
