@@ -166,6 +166,7 @@ public class Sensor extends Node {
 		else{
 			System.out.println("reg4 esta vazia");
 		}
+		System.out.println("");
 	}
 
 	/*
@@ -237,6 +238,10 @@ public class Sensor extends Node {
 				melhorVizinho = vizinhoAtual;
 			}	
 		}
+		
+		// Adiciona o melhor caminho aos custos conhecidos.
+		this.custosConhecidos.addNovoCusto( this.getCentro(reg), menorCusto + 
+				Configuration.messageTransmissionModel.timeToReach(this, melhorVizinho, null), melhorVizinho.getID());
 		
 		return melhorVizinho;
 	}
