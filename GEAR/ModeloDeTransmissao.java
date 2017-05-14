@@ -8,7 +8,7 @@ public class ModeloDeTransmissao extends MessageTransmissionModel{
 
 	@Override
 	public float timeToReach(Node arg0, Node arg1, Message arg2) {
-		return 1;
+		return 10;
 	}
 
 }
